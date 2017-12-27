@@ -10,5 +10,8 @@ CREATE TABLE users(
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     confirmed_token VARCHAR(255),
-    confirmed_at DATETIME
+    confirmed_at DATETIME,
+    reset_token VARCHAR(60) NULL,
+    reset_at DATETIME,
+    remember_token VARCHAR(250) NULL
 );
