@@ -1,7 +1,7 @@
 <?php
-    require "./public/function.php";
-    logged();
-
+    require_once "./public/bootstrap.php";
+    $auth = new Auth();
+    $auth->restrict(Session::getInstance());
     if (!empty($_POST)) {
 
         if (empty($_POST['password']) || ($_POST['password'] != $_POST['confirm_password'])) {

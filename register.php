@@ -1,54 +1,29 @@
-<?php 
+<?php
+require_once "./public/bootstrap.php";
+
 if (!empty($_POST)) {
-    session_start();
-    require_once "./public/function.php";
-    require_once "./config/connect_db.php";
     $errors = array();
-    
-    if (empty($_POST['firstname']) || !preg_match('/^[a-zA-Z]+$/', $_POST['firstname'])) {
-        $errors['firstname'] = "Vous n'avez renseigné votre prénom";
-    }
+    $db = App::getDatabase();
 
-    if (empty($_POST['lastname']) || !preg_match('/^[a-zA-Z]+$/', $_POST['lastname'])) {
-        $errors['lastname'] = "Vous n'avez renseigné votre nom";
+    $valide = new Validation($_POST);
+    $valide->isString('firstname', "Vous n'avez pas ou mal renseigné votre prénom");
+    $valide->isString('lastname', "Vous n'avez pas ou mal renseigné votre nom");
+    $valide->isAlpha('username', "Votre pseudo n'est pas valide (alphanumerique)");
+    if ($valide->isValid()) {
+        $valide->isUniq('username', $db, 'users', "Ce pseudo est déja utilisé");
     }
-
-    if (empty($_POST['username']) || !preg_match('/^[a-zA-Z0-9_]+$/', $_POST['username'])) {
-        $errors['username'] = "Vous n'avez renseigné votre username";
+    $valide->isEmail('email', "Votre email n'est pas valide");
+    if ($valide->isValid()) {
+        $valide->isUniq('email', $db, 'users', "Cet email est déja utilisé");
+    }
+    $valide->isConfirmed('password', "Vous devez rentrer un password valide");
+    if ($valide->isValid()) {
+        $auth = new Auth();
+        $auth->register($db, $_POST['firstname'], $_POST['lastname'], $_POST['username'], $_POST['email'], $_POST['password']);
+        Session::getInstance()->setFlash('success', "Un email de confirmation vous a été envoyé pour valider votre compte");
+        
     } else {
-        $req = $connect->prepare("SELECT id FROM users WHERE username = ?");
-        $req->execute([$_POST['username']]);
-        $user = $req->fetch();
-        if($user) {
-            $errors['username'] = "Ce pseudo est déja utilisé";
-        }
-    }
-
-    if (empty($_POST['email']) || !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = "Votre email n'est pas valide";
-    }else{
-        $req = $connect->prepare("SELECT id FROM users WHERE email = ?");
-        $req->execute([$_POST['email']]);
-        $mail = $req->fetch();
-        if($mail) {
-            $errors['email'] = "Ce mail est déja utilisé";
-        }
-    }
-
-    if (empty($_POST['password']) || $_POST['password'] != $_POST['confirm_password']) {
-        $errors['password'] = "Vous devez rentrer un password valide";
-    }
-
-    if (empty($errors)) {
-        $req = $connect->prepare("INSERT INTO users SET firstname = ?, lastname = ?, username = ?, password = ?, email = ?, confirmed_token = ?");
-        $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-        $token = str_random(60);
-        $req->execute([$_POST['firstname'], $_POST['lastname'], $_POST['username'], $password, $_POST['email'], $token]);
-        $user_id = $connect->lastInsertId();
-        mail($_POST['email'], 'Confirmation de votre compte', "Afin de valider votre compte, merci de cliquer sur le lien suivant\n\nhttp://localhost:8000/confirm.php?id=$user_id&token=$token");
-        $_SESSION['flash']['success'] = 'Un email de confirmation vous a été envoyé pour valider votre compte';
-        header('Location: login.php');
-        exit();
+        $errors = $valide->getErrors();
     }
 }
 ?>
