@@ -1,20 +1,14 @@
-<?php 
+<?php
+    require_once "./public/bootstrap.php"; 
     if (!empty($_POST) && !empty($_POST['email'])) {
-        require_once "./public/function.php";
-        require_once "./config/connect_db.php";
-        $req = $connect->prepare("SELECT * FROM users WHERE email = ? AND confirmed_at IS NOT NULL");
-        $req->execute([$_POST['email']]);
-        $user = $req->fetch();
-        if ($user) {
-            session_start();
-            $reset_token = str_random(60);
-            $req = $connect->prepare("UPDATE users SET reset_token = ?, reset_at = NOW() WHERE id = ?")->execute([$reset_token, $user->id]);
-            $_SESSION['flash']['success'] = 'Un email vous a ete envoyé';
-            mail($_POST['email'], 'Réinitialisation de votre mot de passe', "Afin de valider votre compte, merci de cliquer sur le lien suivant\n\nhttp://localhost:8000/reset.php?id={$user->id}&token=$reset_token");
-            header('Location: login.php');
-            exit();
+        $db = App::getDatabase();
+        $auth = App::getAuth();
+        $session = Session::getInstance();
+        if ($auth->forget($db, $_POST['email'])){
+            $session->setFlash('success', 'Un email vous a ete envoyé');
+            App::redirect('login.php');
         } else {
-            $_SESSION['flash']['danger'] = "l'email n'a pas ete trouvé" ;
+            $session->setFlash('danger', "l'email n'a pas ete trouvé");
         }
     }
 ?>

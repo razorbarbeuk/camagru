@@ -1,3 +1,5 @@
+<?php require_once "./public/bootstrap.php"; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

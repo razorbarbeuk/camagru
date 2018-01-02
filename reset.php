@@ -1,10 +1,8 @@
 <?php 
     if (isset($_GET['id']) && isset($_GET['token'])) {
-        require_once "./public/function.php";
-        require_once "./config/connect_db.php";
-        $req = $connect->prepare("SELECT * FROM users WHERE id = ? AND reset_token IS NOT NULL AND reset_token = ? AND reset_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE)");
-        $req->execute([$_GET['id'], $_GET['token']]);
-        $user = $req->fetch();
+        $auth = App::getAuth();
+        $db = App::getDatabase();
+        $user = $auth->checkResetToken($db, $_GET['id'], $_GET['token']);
         if ($user) {
             if (!empty($_POST)) {
                 if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm_password']) {

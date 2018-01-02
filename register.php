@@ -18,10 +18,9 @@ if (!empty($_POST)) {
     }
     $valide->isConfirmed('password', "Vous devez rentrer un password valide");
     if ($valide->isValid()) {
-        $auth = new Auth();
-        $auth->register($db, $_POST['firstname'], $_POST['lastname'], $_POST['username'], $_POST['email'], $_POST['password']);
+        App::getAuth()->register($db, $_POST['firstname'], $_POST['lastname'], $_POST['username'], $_POST['email'], $_POST['password']);
         Session::getInstance()->setFlash('success', "Un email de confirmation vous a été envoyé pour valider votre compte");
-        
+        App::redirect('login.php');
     } else {
         $errors = $valide->getErrors();
     }

@@ -6,14 +6,7 @@
 
     function logged()
     {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start(); 
-        }
-        if (!isset($_SESSION['auth'])) {
-            $_SESSION['flash']['danger'] = "Vous n'avez d'accéder à cette page";
-            header('Location: login.php');
-            exit();
-        }
+        
     }
 
     function reconnect_from_cookie()
@@ -22,7 +15,7 @@
             session_start(); 
         }
         if (isset($_COOKIE['remember']) && !isset($_SESSION['auth'])) {
-            require_once "../config/connect_db.php";
+            require_once "./config/connect_db.php";
             if (!isset($connect)) {
                 global $connect;
             }
